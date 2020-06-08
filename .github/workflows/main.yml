@@ -12,4 +12,6 @@ jobs:
           port: "4222"
 
       - name: connect to server
-        run: telnet localhost 4222
+        uses: onichandame/nats-client-action@master
+        with:
+          servers: "nats://localhost:4222"
