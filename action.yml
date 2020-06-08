@@ -2,6 +2,7 @@ name: "nats-action"
 author: "onichandame"
 description: "Github action to create a NATS server/cluster for CI/CD"
 branding:
+  icon: "server"
   color: "blue"
 inputs:
   image_version:
