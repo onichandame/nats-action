@@ -1,0 +1,17 @@
+name: "nats-action"
+author: "onichandame"
+description: "Github action to create a NATS server/cluster for CI/CD"
+branding:
+  color: "blue"
+inputs:
+  image_version:
+    description: "The NATS server image version to use"
+    required: false
+    default: "latest"
+  port:
+    description: "The port(s) to use. If multiple ports are used(e.g. 4222 4223), a cluster is created."
+    required: false
+    default: "4222"
+runs:
+  using: "node12"
+  main: "dist/nats-action.cjs.production.min.js"

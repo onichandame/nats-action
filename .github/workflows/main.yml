@@ -1,0 +1,15 @@
+name: Test
+on: [push]
+jobs:
+  test-nats-action:
+    runs-on: ubuntu-latest
+    name: Test NATS action
+
+    steps:
+      - name: Create Nats server
+        uses: onichandame/nats-action@master
+        with:
+          port: "4222"
+
+      - name: connect to server
+        run: telnet localhost 4222
