@@ -1602,15 +1602,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = __webpack_require__(422);
 const core_1 = __webpack_require__(470);
 const exec_1 = __webpack_require__(986);
+let usedPorts = [];
 const parsePorts = () => {
     return core_1.getInput("port")
         .split(" ")
         .map(v => parseInt(v))
         .filter(v => !isNaN(v) && v >= 0);
 };
-const startServer = (port, clusterPort, routePort, masterName) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+const ports = parsePorts();
+usedPorts.concat(ports);
+const genPort = () => {
+    const end = 10000;
+    let cur = usedPorts[usedPorts.length - 1];
+    while (usedPorts.indexOf(cur) >= 0) {
+        if (++cur > end)
+            core_1.setFailed(`ports exhausted`);
+    }
+    usedPorts.push(cur);
+    return cur;
+};
+const startServer = ({ port, name, clusterPort, routePort, masterName }) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
     let options = [];
     options.push(...["-d", "-p", `${port}:${port}`]);
+    if (name)
+        options.push(...["--name", name]);
     if (clusterPort)
         options.push(...["--cluster", `nats://0.0.0.0:${clusterPort}`]);
     if (routePort && masterName)
@@ -1621,14 +1636,25 @@ const startServer = (port, clusterPort, routePort, masterName) => tslib_1.__awai
         core_1.setFailed(`failed to start server`);
 });
 (() => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const ports = parsePorts();
     if (!ports.length)
         core_1.setFailed(`require at least 1 port`);
     core_1.info(`ports ${ports.join(", ")} will be used`);
     if (ports.length === 1) {
-        yield startServer(ports[0]);
+        yield startServer({ port: ports[0] });
     }
     else {
+        const master = "masternatsinstance";
+        const servers = [];
+        const seedPort = genPort();
+        servers.push(startServer({ port: ports[0], name: master, clusterPort: seedPort }));
+        for (let slave of ports.slice(1, ports.length))
+            servers.push(startServer({
+                port: slave,
+                clusterPort: genPort(),
+                routePort: seedPort,
+                masterName: master
+            }));
+        yield Promise.all(servers);
     }
 }))();
 //# sourceMappingURL=index.js.map

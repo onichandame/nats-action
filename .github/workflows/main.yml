@@ -1,9 +1,9 @@
 name: Test
 on: [push]
 jobs:
-  test-nats-action:
+  test-single-server:
     runs-on: ubuntu-latest
-    name: Test NATS action
+    name: Test single server
 
     steps:
       - name: Create Nats server
@@ -15,3 +15,17 @@ jobs:
         uses: onichandame/nats-client-action@master
         with:
           servers: "nats://localhost:4222"
+  test-cluster:
+    runs-on: ubuntu-latest
+    name: Test cluster
+
+    steps:
+      - name: Create Nats server
+        uses: onichandame/nats-action@master
+        with:
+          port: "4222 4223 4224"
+
+      - name: connect to server
+        uses: onichandame/nats-client-action@master
+        with:
+          servers: "nats://localhost:4222 nats://localhost:4223 nats://localhost:4224"
