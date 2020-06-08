@@ -14,4 +14,4 @@ inputs:
     default: "4222"
 runs:
   using: "node12"
-  main: "dist/nats-action.cjs.production.min.js"
+  main: "dist/index.js"
