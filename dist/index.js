@@ -967,10 +967,190 @@ module.exports = require("child_process");
 
 /***/ }),
 
+/***/ 222:
+/***/ (function(module, exports, __webpack_require__) {
+
+var arrayUniq = __webpack_require__(738);
+
+function Charset() {
+  this.chars = '';
+}
+
+Charset.prototype.setType = function(type) {
+  var chars;
+  
+  var numbers    = '0123456789';
+  var charsLower = 'abcdefghijklmnopqrstuvwxyz';
+  var charsUpper = charsLower.toUpperCase();
+  var hexChars   = 'abcdef';
+  
+  if (type === 'alphanumeric') {
+    chars = numbers + charsLower + charsUpper;
+  }
+  else if (type === 'numeric') {
+    chars = numbers;
+  }
+  else if (type === 'alphabetic') {
+    chars = charsLower + charsUpper;
+  }
+  else if (type === 'hex') {
+    chars = numbers + hexChars;
+  }
+  else {
+    chars = type;
+  }
+  
+  this.chars = chars;
+}
+
+Charset.prototype.removeUnreadable = function() {
+  var unreadableChars = /[0OIl]/g;
+  this.chars = this.chars.replace(unreadableChars, '');
+}
+
+Charset.prototype.setcapitalization = function(capitalization) {
+  if (capitalization === 'uppercase') {
+    this.chars = this.chars.toUpperCase();
+  }
+  else if (capitalization === 'lowercase') {
+    this.chars = this.chars.toLowerCase();
+  }
+}
+
+Charset.prototype.removeDuplicates = function() {
+  var charMap = this.chars.split('');
+  charMap = arrayUniq(charMap);
+  this.chars = charMap.join('');
+}
+
+module.exports = exports = Charset;
+
+/***/ }),
+
 /***/ 357:
 /***/ (function(module) {
 
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 363:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.startServer = void 0;
+const tslib_1 = __webpack_require__(422);
+const randomstring_1 = __webpack_require__(802);
+const exec_1 = __webpack_require__(986);
+const createNetwork_1 = __webpack_require__(474);
+exports.startServer = (port, masterName) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+    const name = randomstring_1.generate({ length: 5, charset: "alphanumeric" });
+    const network = yield createNetwork_1.createNetwork();
+    let options = [];
+    options.push(...["-d", "--network", network, "-p", `${port}:${port}`]);
+    if (name)
+        options.push(...["--name", name]);
+    options.push("nats:alpine");
+    if (masterName)
+        options.push(...[
+            "--cluster",
+            `nats://0.0.0.0:6222`,
+            "--routes",
+            `nats://ruser:T0pS3cr3t@${masterName}:6222`
+        ]);
+    options = ["docker", "run"].concat(options);
+    return exec_1.exec("sudo", options).then(code => {
+        if (code === 0)
+            return name;
+        else
+            throw new Error(`failed to start server ${options.join(" ")}`);
+    });
+});
+//# sourceMappingURL=startServer.js.map
+
+/***/ }),
+
+/***/ 417:
+/***/ (function(module) {
+
+module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 420:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+var crypto  = __webpack_require__(417);
+var Charset = __webpack_require__(222);
+
+function safeRandomBytes(length) {
+  while (true) {
+    try {
+      return crypto.randomBytes(length);
+    } catch(e) {
+      continue;
+    }
+  }
+}
+
+exports.generate = function(options) {
+  
+  var charset = new Charset();
+  
+  var length, chars, capitalization, string = '';
+  
+  // Handle options
+  if (typeof options === 'object') {
+    length = options.length || 32;
+    
+    if (options.charset) {
+      charset.setType(options.charset);
+    }
+    else {
+      charset.setType('alphanumeric');
+    }
+    
+    if (options.capitalization) {
+      charset.setcapitalization(options.capitalization);
+    }
+    
+    if (options.readable) {
+      charset.removeUnreadable();
+    }
+    
+    charset.removeDuplicates();
+  }
+  else if (typeof options === 'number') {
+    length = options;
+    charset.setType('alphanumeric');
+  }
+  else {
+    length = 32;
+    charset.setType('alphanumeric');
+  }
+  
+  // Generate the string
+  var charsLen = charset.chars.length;
+  var maxByte = 256 - (256 % charsLen);
+  while (length > 0) {
+    var buf = safeRandomBytes(Math.ceil(length * 256 / maxByte));
+    for (var i = 0; i < buf.length && length > 0; i++) {
+      var randomByte = buf.readUInt8(i);
+      if (randomByte < maxByte) {
+        string += charset.chars.charAt(randomByte % charsLen);
+        length--;
+      }
+    }
+  }
+
+  return string;
+};
+
 
 /***/ }),
 
@@ -1593,6 +1773,29 @@ exports.getState = getState;
 
 /***/ }),
 
+/***/ 474:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createNetwork = void 0;
+const tslib_1 = __webpack_require__(422);
+const exec_1 = __webpack_require__(986);
+const randomstring_1 = __webpack_require__(802);
+let network;
+exports.createNetwork = () => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+    if (!network) {
+        network = randomstring_1.generate({ length: 10, charset: "alphanumeric" });
+        if ((yield exec_1.exec("sudo", `docker network create ${network}`.split(" "))) !== 0)
+            throw new Error(`creation of network ${network} failed`);
+    }
+    return network;
+});
+//# sourceMappingURL=createNetwork.js.map
+
+/***/ }),
+
 /***/ 526:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -1601,60 +1804,28 @@ exports.getState = getState;
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = __webpack_require__(422);
 const core_1 = __webpack_require__(470);
-const exec_1 = __webpack_require__(986);
+const startServer_1 = __webpack_require__(363);
 let usedPorts = [];
 const parsePorts = () => {
-    return core_1.getInput("port")
-        .split(" ")
-        .map(v => parseInt(v))
-        .filter(v => !isNaN(v) && v >= 0);
+    return [
+        ...new Set(core_1.getInput("port")
+            .split(" ")
+            .map(v => parseInt(v))
+            .filter(v => !isNaN(v) && v >= 0))
+    ];
 };
 const ports = parsePorts();
 usedPorts.concat(ports);
-const genPort = () => {
-    const end = 10000;
-    let cur = usedPorts[usedPorts.length - 1];
-    while (usedPorts.indexOf(cur) >= 0) {
-        if (++cur > end)
-            core_1.setFailed(`ports exhausted`);
-    }
-    usedPorts.push(cur);
-    return cur;
-};
-const startServer = ({ port, name, clusterPort, routePort, masterName }) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    let options = [];
-    options.push(...["-d", "-p", `${port}:${port}`]);
-    if (name)
-        options.push(...["--name", name]);
-    if (clusterPort)
-        options.push(...["--cluster", `nats://0.0.0.0:${clusterPort}`]);
-    if (routePort && masterName)
-        options.push(...["--routes", `nats://${masterName}:${routePort}`]);
-    options.push("nats");
-    options = ["docker", "run"].concat(options);
-    if ((yield exec_1.exec("sudo", options)) !== 0)
-        core_1.setFailed(`failed to start server`);
-});
 (() => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    if (!ports.length)
-        core_1.setFailed(`require at least 1 port`);
-    core_1.info(`ports ${ports.join(", ")} will be used`);
-    if (ports.length === 1) {
-        yield startServer({ port: ports[0] });
+    try {
+        if (!ports.length)
+            core_1.setFailed(`require at least 1 port!`);
+        core_1.info(`ports ${ports.join(", ")} will be used`);
+        const master = yield startServer_1.startServer(ports.shift());
+        yield Promise.all(ports.map(p => startServer_1.startServer(p, master)));
     }
-    else {
-        const master = "masternatsinstance";
-        const servers = [];
-        const seedPort = genPort();
-        servers.push(startServer({ port: ports[0], name: master, clusterPort: seedPort }));
-        for (let slave of ports.slice(1, ports.length))
-            servers.push(startServer({
-                port: slave,
-                clusterPort: genPort(),
-                routePort: seedPort,
-                masterName: master
-            }));
-        yield Promise.all(servers);
+    catch (e) {
+        core_1.setFailed(JSON.stringify(e.message || e));
     }
 }))();
 //# sourceMappingURL=index.js.map
@@ -1884,10 +2055,85 @@ function isUnixExecutable(stats) {
 
 /***/ }),
 
+/***/ 738:
+/***/ (function(module) {
+
+"use strict";
+
+
+// there's 3 implementations written in increasing order of efficiency
+
+// 1 - no Set type is defined
+function uniqNoSet(arr) {
+	var ret = [];
+
+	for (var i = 0; i < arr.length; i++) {
+		if (ret.indexOf(arr[i]) === -1) {
+			ret.push(arr[i]);
+		}
+	}
+
+	return ret;
+}
+
+// 2 - a simple Set type is defined
+function uniqSet(arr) {
+	var seen = new Set();
+	return arr.filter(function (el) {
+		if (!seen.has(el)) {
+			seen.add(el);
+			return true;
+		}
+	});
+}
+
+// 3 - a standard Set type is defined and it has a forEach method
+function uniqSetWithForEach(arr) {
+	var ret = [];
+
+	(new Set(arr)).forEach(function (el) {
+		ret.push(el);
+	});
+
+	return ret;
+}
+
+// V8 currently has a broken implementation
+// https://github.com/joyent/node/issues/8449
+function doesForEachActuallyWork() {
+	var ret = false;
+
+	(new Set([true])).forEach(function (el) {
+		ret = el;
+	});
+
+	return ret === true;
+}
+
+if ('Set' in global) {
+	if (typeof Set.prototype.forEach === 'function' && doesForEachActuallyWork()) {
+		module.exports = uniqSetWithForEach;
+	} else {
+		module.exports = uniqSet;
+	}
+} else {
+	module.exports = uniqNoSet;
+}
+
+
+/***/ }),
+
 /***/ 747:
 /***/ (function(module) {
 
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 802:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+module.exports = __webpack_require__(420);
 
 /***/ }),
 

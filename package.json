@@ -26,6 +26,7 @@
   "module": "dist/nats-action.esm.js",
   "devDependencies": {
     "@types/node": "^14.0.11",
+    "@types/randomstring": "^1.1.6",
     "@zeit/ncc": "^0.22.1",
     "husky": "^4.2.5",
     "prettier-eslint": "9.0.1",
@@ -33,6 +34,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.2.4",
-    "@actions/exec": "^1.0.4"
+    "@actions/exec": "^1.0.4",
+    "randomstring": "^1.1.5"
   }
 }
