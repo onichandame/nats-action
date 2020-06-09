@@ -1049,7 +1049,7 @@ exports.startServer = (port, masterName) => tslib_1.__awaiter(void 0, void 0, vo
     const name = randomstring_1.generate({ length: 5, charset: "alphanumeric" });
     const network = yield createNetwork_1.createNetwork();
     let options = [];
-    options.push(...["-d", "--network", network, "-p", `${port}:${port}`]);
+    options.push(...["-d", "--network", network, "-p", `${port}:4222`]);
     if (name)
         options.push(...["--name", name]);
     options.push("nats:alpine");

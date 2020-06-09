@@ -10,7 +10,7 @@ export const startServer = async (
   const name = generate({ length: 5, charset: "alphanumeric" })
   const network = await createNetwork()
   let options: string[] = []
-  options.push(...["-d", "--network", network, "-p", `${port}:${port}`])
+  options.push(...["-d", "--network", network, "-p", `${port}:4222`])
   if (name) options.push(...["--name", name])
   options.push("nats:alpine")
   if (masterName)
