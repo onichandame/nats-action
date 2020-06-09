@@ -1,27 +1,30 @@
-# TSDX Bootstrap
+# Nats Action
 
-This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
+Starts Nats server/cluster for automated CI/CD.
 
-## Local Development
+# Author
 
-Below is a list of commands you will probably find useful.
+[onichandame](https://onichandame.com)
 
-### `npm start` or `yarn start`
+# Usage
 
-Runs the project in development/watch mode. Your project will be rebuilt upon changes. TSDX has a special logger for you convenience. Error messages are pretty printed and formatted for compatibility VS Code's Problems tab.
+```yaml
+name: Test
+on: [push]
+jobs:
+  test-cluster:
+    runs-on: ubuntu-latest
+    name: Test cluster
 
-<img src="https://user-images.githubusercontent.com/4060187/52168303-574d3a00-26f6-11e9-9f3b-71dbec9ebfcb.gif" width="600" />
+    steps:
+      - name: Create Nats cluster
+        uses: onichandame/nats-action@master
+        with:
+          port: "4222 4223 4224" # multiple different ports will start a cluster. single port will start a single server
 
-Your library will be rebuilt if you make edits.
-
-### `npm run build` or `yarn build`
-
-Bundles the package to the `dist` folder.
-The package is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
-
-<img src="https://user-images.githubusercontent.com/4060187/52168322-a98e5b00-26f6-11e9-8cf6-222d716b75ef.gif" width="600" />
-
-### `npm test` or `yarn test`
-
-Runs the test watcher (Jest) in an interactive mode.
-By default, runs tests related to files changed since the last commit.
+      - name: test connection to cluster
+        uses: onichandame/nats-client-action@master
+        with:
+          servers: "nats://localhost:4222 nats://localhost:4223 nats://localhost:4224"
+          cluster: "true"
+```
