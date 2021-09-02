@@ -1,3 +1,5 @@
+*This action can only be run on Linux runners as it requires Docker to be available in the environment*
+
 # Nats Action
 
 Starts Nats server/cluster for automated CI/CD.
